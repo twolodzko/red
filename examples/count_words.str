@@ -1,0 +1,32 @@
+# Call:
+#  ./red -f examples/count_words.str examples/count_words.str
+#
+# Example:
+# data = [some, words]
+# data = [other, words]
+# data = []
+#
+# It will return something like:
+# result = {"...": 1, "words": 2, "some": 1, "": 1, "<arr>": 1, "other": 1}
+
+# initialize a counter
+var &c = count()
+
+# iterate over the array, count elements
+fn count_words(arr) {
+   case len(arr) {
+      0 {}
+      _ {
+         &c += trim(arr[0]),
+         count_words(arr[1:])
+      }
+   }
+}
+
+# select lines containing "data = [...]"
+match(~"data = [<arr>]"),
+   # split lines by "," and iterate over the elements
+   count_words(split(arr, ","))
+
+# show the count
+end { print(~"result = <&c>") }
