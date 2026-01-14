@@ -123,6 +123,7 @@ impl Template {
                     match c {
                         '_' => {
                             if !acc.is_empty() {
+                                acc = crate::unescape(&acc);
                                 pattern.push(Field::Literal(acc.to_string()));
                                 acc.clear();
                             }
@@ -140,6 +141,7 @@ impl Template {
                         }
                         _ => {
                             if !acc.is_empty() {
+                                acc = crate::unescape(&acc);
                                 pattern.push(Field::Literal(acc.to_string()));
                                 acc.clear();
                             }
@@ -178,6 +180,7 @@ impl Template {
             }
         }
         if !acc.is_empty() {
+            acc = crate::unescape(&acc);
             pattern.push(Field::Literal(acc));
         }
         Ok(Template(pattern))

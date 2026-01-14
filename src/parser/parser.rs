@@ -199,7 +199,7 @@ impl<R: Reader> Parser<R> {
                 let n = Number::from_str(s)?;
                 Expr::Const(Type::Number(n))
             }
-            Token::String(s) => Expr::Const(Type::String(s)),
+            Token::String(ref s) => Expr::Const(Type::String(crate::unescape(s))),
             Token::Regex(ref s) => {
                 let r = Regex::from_str(s)?;
                 Expr::Const(Type::Regex(r))
