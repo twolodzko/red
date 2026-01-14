@@ -106,26 +106,18 @@ impl Map {
             .iter()
             .map(|(k, v)| {
                 let k = k.replace(|c: char| c.is_whitespace(), "_");
+                let mut s = v.to_string();
                 match v {
-                    Type::String(_) | Type::Regex(_) => {
-                        let v = v.to_string();
-                        if !v.chars().all(|c| !c.is_whitespace()) {
-                            return Ok(format!("{}={}", k, quote(&v)));
-                        }
+                    Type::String(_) | Type::Regex(_) if s.contains(|c: char| c.is_whitespace()) => {
+                        s = quote(&s)
                     }
-                    Type::Map(map) => {
-                        let v = map.to_json()?;
-                        return Ok(format!("{}={}", k, quote(&v)));
-                    }
-                    Type::Array(arr) => {
-                        let v = arr.to_string();
-                        return Ok(format!("{}={}", k, quote(&v)));
-                    }
+                    Type::Map(_) => s = quote(&s),
+                    Type::Array(_) => s = quote(&s),
                     _ => (),
-                }
-                Ok(format!("{k}={v}"))
+                };
+                format!("{k}={s}")
             })
-            .collect::<Result<Vec<String>>>()?
+            .collect::<Vec<String>>()
             .join(" ");
         Ok(val)
     }
