@@ -1,5 +1,4 @@
-use super::{Type, join};
-use crate::{Error, Result};
+use crate::{Error, Result, Type, join};
 use indexmap::{IndexMap, map::Iter};
 use serde::Serialize;
 

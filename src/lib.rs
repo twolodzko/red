@@ -17,6 +17,17 @@ fn unescape(s: &str) -> String {
     unescape::unescape(s).unwrap_or(s.to_string())
 }
 
+fn join<I>(args: I, sep: &str) -> String
+where
+    I: IntoIterator,
+    I::Item: ToString,
+{
+    args.into_iter()
+        .map(|elem| elem.to_string())
+        .collect::<Vec<String>>()
+        .join(sep)
+}
+
 pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Debug)]

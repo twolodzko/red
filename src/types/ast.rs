@@ -1,4 +1,5 @@
-use super::{Operator, Regex, Template, Type, join};
+use super::{Operator, Regex, Template, Type};
+use crate::join;
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 #[derive(Debug, Default, PartialEq)]

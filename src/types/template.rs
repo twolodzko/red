@@ -1,7 +1,7 @@
-use super::join;
 use crate::{
     Error, Result,
     eval::{Context, eval},
+    join,
     parser::Parser,
     types::{Expr, Map, Regex, Variable},
 };

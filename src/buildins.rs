@@ -97,6 +97,12 @@ pub const PROCEDURES: &[(&str, Procedure, &str, &str)] = &[
         "sort a string, array, or a map",
     ),
     (
+        "join",
+        join,
+        "array, [string]",
+        "convert array to string, joining with separator",
+    ),
+    (
         "unique",
         unique,
         "string|collection",
@@ -251,6 +257,19 @@ fn split(args: &[Type]) -> Result<Type> {
             .into()
     };
     Ok(Type::Array(arr))
+}
+
+fn join(args: &[Type]) -> Result<Type> {
+    let sep = match args.len() {
+        1 => Cow::Owned(String::new()),
+        2 => args[1].as_string()?,
+        _ => return Err(Error::WrongArgumentsNumber),
+    };
+    let Type::Array(arr) = &args[0] else {
+        return Err(Error::NotArray);
+    };
+    let s = super::join(arr.iter(), sep.as_ref());
+    Ok(Type::String(s))
 }
 
 fn sub(args: &[Type]) -> Result<Type> {
