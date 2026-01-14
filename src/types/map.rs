@@ -107,13 +107,12 @@ impl Map {
             .map(|(k, v)| {
                 let k = k.replace(|c: char| c.is_whitespace(), "_");
                 let mut s = v.to_string();
-                match v {
+                s = match v {
                     Type::String(_) | Type::Regex(_) if s.contains(|c: char| c.is_whitespace()) => {
-                        s = quote(&s)
+                        quote(s)
                     }
-                    Type::Map(_) => s = quote(&s),
-                    Type::Array(_) => s = quote(&s),
-                    _ => (),
+                    Type::Map(_) | Type::Array(_) => quote(s),
+                    _ => s,
                 };
                 format!("{k}={s}")
             })
@@ -263,7 +262,7 @@ impl From<serde_json::Value> for Type {
     }
 }
 
-fn quote(line: &str) -> String {
+fn quote(line: String) -> String {
     format!("\"{}\"", line.replace('\\', "\\\\").replace('"', "\\\""))
 }
 
@@ -277,7 +276,7 @@ pub(crate) mod tests {
         let input = r#"{"address":{"city":"London","street":"10 Downing Street"},"age":43,"gender":null,"name":"John Doe","phones":["+44 1234567","+44 2345678"]}"#;
         let json: serde_json::Value = serde_json::from_str(input).unwrap();
         let result = Type::from(json);
-        assert_eq!(serde_json::to_string(&result).unwrap(), input)
+        assert_eq!(result.to_string(), input)
     }
 
     #[test]
