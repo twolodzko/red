@@ -200,6 +200,7 @@ impl<R: Reader> Parser<R> {
                 Expr::Const(Type::Number(n))
             }
             Token::String(ref s) => Expr::Const(Type::String(crate::unescape(s))),
+            Token::Template(ref s) => Expr::Template(Template::from_str(s)?),
             Token::Regex(ref s) => {
                 let r = Regex::from_str(s)?;
                 Expr::Const(Type::Regex(r))
@@ -531,11 +532,6 @@ impl<R: Reader> Parser<R> {
 
     fn printer(&mut self) -> Result<Print> {
         let res = match self.0.peek()? {
-            Some(Token::String(ref s)) => {
-                self.0.skip()?;
-                let t = Template::from_str(s)?;
-                Print::Template(t)
-            }
             Some(Token::Ident(s)) if s == "json" => {
                 self.0.skip()?;
                 Print::Json
@@ -547,11 +543,6 @@ impl<R: Reader> Parser<R> {
             Some(Token::Ident(s)) if s == "logfmt" => {
                 self.0.skip()?;
                 Print::Logfmt
-            }
-            Some(Token::Template(ref s)) => {
-                self.0.skip()?;
-                let template = Template::from_str(s)?;
-                Print::Template(template)
             }
             _ => Print::Expr(Box::new(self.expr()?)),
         };
@@ -735,7 +726,7 @@ mod tests {
         "match(~'<all>'), print(~'result=<all>')",
         Block(vec![
             Expr::Match(Match::Regex(Regex::try_from(Template::from_str("<all>").unwrap()).unwrap())),
-            Expr::Print(Print::Template(Template::from_str("result=<all>").unwrap()))
+            Expr::Print(Print::Expr(Box::new(Expr::Template(Template::from_str("result=<all>").unwrap())))),
         ]);
         "templates on parsing and formatting"
     )]

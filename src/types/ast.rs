@@ -62,7 +62,6 @@ pub(crate) enum Print {
     Json,
     PrettyJson,
     Logfmt,
-    Template(Template),
     Expr(Box<Expr>),
 }
 
@@ -73,7 +72,6 @@ impl std::fmt::Display for Print {
             Json => write!(f, "json"),
             PrettyJson => write!(f, "pretty"),
             Logfmt => write!(f, "logfmt"),
-            Template(t) => t.fmt(f),
             Expr(e) => e.fmt(f),
         }
     }
@@ -98,6 +96,7 @@ pub(crate) enum Expr {
     Between(Match, Match, AtomicBool),
     Print(Print),
     Action(Action),
+    Template(Template),
 }
 
 #[derive(Clone, Debug, PartialEq, Copy)]
@@ -193,6 +192,7 @@ impl std::fmt::Display for Expr {
             Between(start, stop, _) => write!(f, "between({}, {})", start, stop),
             Print(p) => p.fmt(f),
             Action(a) => a.fmt(f),
+            Template(t) => t.fmt(f),
         }
     }
 }

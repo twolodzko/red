@@ -392,6 +392,10 @@ pub(crate) fn eval<O: Write>(expr: &Expr, data: &mut Map, ctx: &mut Context<O>) 
                 Ok(Type::Null)
             }
             Action(action) => Err(Error::Action(*action)),
+            Template(template) => {
+                let s = template.interpolate(data, ctx)?;
+                Ok(Type::String(s))
+            }
         };
     }
 }
@@ -564,7 +568,6 @@ impl Print {
             Json => data.to_json()?,
             PrettyJson => data.to_pretty()?,
             Logfmt => data.to_logfmt()?,
-            Template(template) => template.interpolate(data, ctx)?,
             Expr(expr) => eval(expr, data, ctx)?.to_string(),
         };
         Ok(val)

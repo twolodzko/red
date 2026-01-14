@@ -322,13 +322,13 @@ fn error() {
         "trivial"
     )]
 #[test_case(
-        "end { msg = 'hello, world!', print('<msg>') }",
+        "end { msg = 'hello, world!', print(~'<msg>') }",
         "hello, world!\n";
         "variable"
     )]
 #[test_case(
         r"fn hello(who) { 'hello, ' ++ who ++ '!' }
-        end { msg = hello('world'), print('<msg>') }",
+        end { msg = hello('world'), print(~'<msg>') }",
         "hello, world!\n";
         "custom function"
     )]
@@ -499,7 +499,7 @@ fn count_total() {
     let code = r#"
         var &acc = 0
         match(/x=(?<x>\d+)/), &acc += num(x)
-        end { print("total=<&acc>") }
+        end { print(~"total=<&acc>") }
         "#;
 
     let mut parser = Parser::from(code.to_string());
