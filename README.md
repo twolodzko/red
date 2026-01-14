@@ -1,4 +1,29 @@
-# red - line editor
+# $\color{Red}\Large{\textbf{red}}$
+
+*Like sed, or AWK, but in Rust, so it's red.*
+
+The language consists of blocks of expressions:
+
+```text
+expr1, expr2, ... ;
+```
+
+each expression is considered as an assertion, if it fails, the execution of a block is aborted
+and next block is executed. Assertion fails when it returns `false`, e.g. when failing to match
+or parse the input, or when a logical expression returns false.
+
+The expressions can do different things:
+
+* Filter lines, e.g. by line number (`N == 5`) or content (`. =~ /foobar/`).
+* Parse them, e.g. `match(json)` or `match(~"time=<time> <_> message=<data>")`.
+* Use assertions for further filtering, e.g. `value >= 100`.
+* Transform the data, e.g. `transformed = sub(text, /[0-9]/, "#")`.
+* Print the data, e.g. `print(msg)`, `print(logfmt)`, or `print(~"result=<&count>")`.
+* Aggregate some results, e.g. `if isnum(x) { &total += x }`.
+
+It is inspired by sed, AWK, but also Grafana's LogQL, and others. It's main purpose is text processing,
+so the data is by default assumed to be strings. Dynamic typing converts the data values to appropriate
+types when needed (e.g. to numbers when conducting mathematical operations).
 
 ## Syntax
 
