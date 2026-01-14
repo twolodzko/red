@@ -371,6 +371,24 @@ pub(crate) fn eval<O: Write>(expr: &Expr, data: &mut Map, ctx: &mut Context<O>) 
                 expr = case(question, branches, data, ctx)?;
                 continue;
             }
+            For(key, iterable, body) => {
+                let iterable = eval(iterable, data, ctx)?;
+                let iter: Box<dyn Iterator<Item = Type>> = match iterable {
+                    Type::Array(a) => Box::new(a.iter().cloned()),
+                    Type::Map(m) => Box::new(m.keys().map(|k| Type::String(k.to_string()))),
+                    other => {
+                        let s = other.as_string()?;
+                        Box::new(s.chars().map(|c| Type::String(c.to_string())))
+                    }
+                };
+                for v in iter {
+                    data.insert(key.to_string(), v.clone());
+                    if !eval_body(body, data, ctx)?.is_true() {
+                        return Ok(Type::FALSE);
+                    }
+                }
+                Ok(Type::Null)
+            }
             Between(start, stop, inside) => {
                 if inside.is_true() {
                     if stop.matches(data, ctx)? {
@@ -466,6 +484,18 @@ pub(crate) fn eval_all<O: Write>(
     ctx: &mut Context<O>,
 ) -> Result<Vec<Type>> {
     exprs.iter().map(|val| eval(val, data, ctx)).collect()
+}
+
+fn eval_body<O: Write>(exprs: &[Expr], data: &mut Map, ctx: &mut Context<O>) -> Result<Type> {
+    let iter = &mut exprs.iter();
+    let mut last = Type::Null;
+    for elem in iter {
+        last = eval(elem, data, ctx)?;
+        if !last.is_true() {
+            return Ok(Type::FALSE);
+        }
+    }
+    Ok(last)
 }
 
 pub(crate) fn eval_but_last<O: Write>(

@@ -93,6 +93,7 @@ pub(crate) enum Expr {
     Slice(Box<Expr>, Box<Expr>, Option<Box<Expr>>),
     If(Box<Expr>, Vec<Expr>, Vec<Expr>),
     Case(Box<Expr>, Vec<(Vec<Expr>, Vec<Expr>)>),
+    For(String, Box<Expr>, Vec<Expr>),
     Match(Match),
     Between(Match, Match, AtomicBool),
     Print(Print),
@@ -187,7 +188,10 @@ impl std::fmt::Display for Expr {
                     let body = join(body, ", ");
                     acc.push(format!("{} {{ {} }}", cond, body));
                 }
-                writeln!(f, "match {} {{ {} }}", expr, join(acc, ", "))
+                write!(f, "match {} {{ {} }}", expr, join(acc, ", "))
+            }
+            For(v, c, b) => {
+                write!(f, "for {} in {} {{ {} }}", v, c, join(b, ", "))
             }
             Match(p) => p.fmt(f),
             Between(start, stop, _) => write!(f, "between({}, {})", start, stop),
