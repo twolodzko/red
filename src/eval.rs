@@ -374,9 +374,9 @@ pub(crate) fn eval<O: Write>(expr: &Expr, data: &mut Map, ctx: &mut Context<O>) 
             For(key, iterable, body) => {
                 let iterable = eval(iterable, data, ctx)?;
                 let iter: Box<dyn Iterator<Item = Type>> = match iterable {
-                    Type::Array(a) => Box::new(a.iter().cloned()),
-                    Type::Map(m) => Box::new(m.keys().map(|k| Type::String(k.to_string()))),
-                    other => {
+                    Type::Array(ref a) => Box::new(a.iter().cloned()),
+                    Type::Map(ref m) => Box::new(m.keys().map(|k| Type::String(k.to_string()))),
+                    ref other => {
                         let s = other.as_string()?;
                         Box::new(s.chars().map(|c| Type::String(c.to_string())))
                     }
