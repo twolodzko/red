@@ -472,7 +472,9 @@ pub(crate) fn eval_but_last<O: Write>(
     let iter = &mut exprs.iter();
     let mut last = iter.next().unwrap_or(&Expr::Const(Type::Null));
     for elem in iter {
-        eval(last, data, ctx)?;
+        if !eval(last, data, ctx)?.is_true() {
+            return Ok(Expr::Const(Type::FALSE));
+        }
         last = elem;
     }
     Ok(last.clone())

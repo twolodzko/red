@@ -278,6 +278,11 @@ impl std::io::Write for WriteMock {
         "[1, 2, 3]";
         "vals"
     )]
+#[test_case(
+        "if true { false, true }",
+        "false";
+        "assertions work in bodies"
+    )]
 fn eval_expr(input: &str, expected: &str) {
     let mut parser = Parser::from(input.to_string());
     let expr = parser.expr().unwrap();
