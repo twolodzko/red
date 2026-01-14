@@ -20,7 +20,7 @@ pub const PROCEDURES: &[(&str, Procedure, &str, &str)] = &[
         "isnan",
         is_nan,
         "value",
-        "check if argument cannot be parsed to a number",
+        "argument cannot be parsed to a number or is a NaN",
     ),
     ("isnum", is_num, "value", "check if argument is a number"),
     ("isstr", is_string, "value", "check if argument is a string"),
