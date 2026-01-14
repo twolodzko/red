@@ -144,6 +144,19 @@ If multiple `end` blocks are declared, they are merged.
 * The operators and build-in functions would rather fail with type error
   than try to cast the types.
 
+### red vs AWK
+
+|                              | AWK                                                            | red                                                                   |
+|------------------------------|----------------------------------------------------------------|-----------------------------------------------------------------------|
+| Print all lines              | `{ print $0 }`                                                 | `print(.)`                                                            |
+| Count lines                  | `END { print NR }`                                             | `end { print N }`                                                     |
+| Print lines 2-4              | `NR==2, NR==4`                                                 | `between(N==1,N==3), print(.)`                                        |
+| Print lines containing "red" | `/red/`                                                        | `. =~ /red/, print(.)`                                                |
+| Print line with index        | `{ print NR, $0 }`                                             | `print(~"<N+1> <.>")`                                                 |
+| Print specific fields        | `BEGIN { FS=";" } { print $2, $5 }`                            | `a = split(., ";"), print(~"<a[1]> <a[4]>")`                          |
+| Find longest line length     | `{ if (length($0) > max) max = length($0) } END { print max }` | `var &max = 0; if (len(.) > &max) &max = len(.); end { print(&max) }` |
+| Reverse lines order          | `{ s = $0 "\n" s } END { print s }`                            | `var &s = ""; &s = . ++ "\n" ++ &s; end { print(&s) }`                |
+
 ## Grammar
 
 ```text
