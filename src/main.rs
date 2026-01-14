@@ -11,6 +11,17 @@ const DETAILS: &str = color_print::cstr!(
 
   each expression is considered as an assertion, if it fails, the execution of a block is aborted and next block is executed. Assertion fails when it returns <s>false</s>, e.g. when failing to match or parse the input, or when a logical expression returns false.
 
+  The expressions can do different things:
+
+   * Filter lines, e.g. by line number (<s>N == 5</s>) or content (<s>. =~ /foobar/</s>).
+   * Parse them, e.g. <s>match(json)</s> or <s>match(~"time=<<time>> <<_>> message=<<data>>")</s>.
+   * Use assertions for further filtering, e.g. <s>value >>= 100</s>.
+   * Transform the data, e.g. <s>transformed = sub(text, /[0-9]/, "X")</s>.
+   * Print the data, e.g. <s>print(msg)</s>, <s>print(logfmt)</s>, or <s>print(~"result=<<&count>>")</s>.
+   * Aggregate some results, e.g. <s>if isnum(x) { &total += x }</s>.
+
+  It is inspired by sed, AWK, but also Grafana's LogQL, and others. It's main purpose is text processing, so the data is by default assumed to be strings. Dynamic typing converts the data values to appropriate types when needed (e.g. to numbers when conducting mathematical operations).
+
   <u><s>Syntax</s></u>
     <s># comment
     fn name( arg, ... ) { expr, ... } ;
@@ -47,8 +58,7 @@ const DETAILS: &str = color_print::cstr!(
 
   <u><s>print(formatter) takes the any of the following as an argument</s></u>
     <s>logfmt</s> local variables as lofgmt
-    <s>json</s> local variables as JSON
-    <s>pretty</s> local variables as prettified JSON
+    <s>json</s>, <s>pretty</s> local variables as JSON
     <s>~"string <<expr>>"</s> interpolate the template
     or an expression that is executed before printing
 
@@ -63,9 +73,9 @@ const DETAILS: &str = color_print::cstr!(
     <s>and</s>, <s>or</s>, <s><<</s>, <s><<=</s>, <s>>></s>, <s>>>=</s>, <s>==</s>, <s>!=</s>, <s>=~</s> (matches regex), <s>!~</s> (not matches regex), <s>++</s> (join), <s>+=</s> (append)
 
   <u><s>Conditionals</s></u>
-    <s>if cond { yes } else { no }
+    <s>if cond { yes } else { no }</s>
 
-    case what {
+    <s>case what {
       val1 {
          ...
       }

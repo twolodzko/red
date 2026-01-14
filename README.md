@@ -17,13 +17,15 @@ The expressions can do different things:
 * Filter lines, e.g. by line number (`N == 5`) or content (`. =~ /foobar/`).
 * Parse them, e.g. `match(json)` or `match(~"time=<time> <_> message=<data>")`.
 * Use assertions for further filtering, e.g. `value >= 100`.
-* Transform the data, e.g. `transformed = sub(text, /[0-9]/, "#")`.
+* Transform the data, e.g. `transformed = sub(text, /[0-9]/, "X")`.
 * Print the data, e.g. `print(msg)`, `print(logfmt)`, or `print(~"result=<&count>")`.
 * Aggregate some results, e.g. `if isnum(x) { &total += x }`.
 
 It is inspired by sed, AWK, but also Grafana's LogQL, and others. It's main purpose is text processing,
 so the data is by default assumed to be strings. Dynamic typing converts the data values to appropriate
 types when needed (e.g. to numbers when conducting mathematical operations).
+
+For more details check `red --help`.
 
 ## Syntax
 
@@ -79,8 +81,7 @@ and ending on the line that matches `stop` (inclusive). It works in a similar wa
 
 Print command accepts the following arguments:
 
-* `json` - format local variables as JSON
-* `pretty` - as above, but pretty JSON
+* `json`, `pretty` - format local variables as JSON
 * `logfmt` - as above, but logfmt
 * `~"template <key>"` - interpolate the template with the local variables
 * `escape` - print line but escape it
