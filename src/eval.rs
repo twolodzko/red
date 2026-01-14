@@ -126,7 +126,7 @@ pub(crate) fn eval<O: Write>(expr: &Expr, data: &mut Map, ctx: &mut Context<O>) 
             }
             Op(And, lhs, rhs) => {
                 if !eval(lhs, data, ctx)?.is_true() {
-                    return Ok(Type::Bool(false));
+                    return Ok(Type::FALSE);
                 }
                 eval(rhs, data, ctx)
             }

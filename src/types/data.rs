@@ -155,8 +155,8 @@ impl From<String> for Type {
     fn from(value: String) -> Self {
         match value.as_str() {
             "null" => Type::Null,
-            "true" => Type::Bool(true),
-            "false" => Type::Bool(false),
+            "true" => Type::TRUE,
+            "false" => Type::FALSE,
             s if s.starts_with(|c: char| c == '-' || c == '+' || c.is_numeric()) => {
                 Number::from_str(s)
                     .map(Type::Number)
