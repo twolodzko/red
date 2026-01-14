@@ -174,14 +174,14 @@ fn := "fn" ident "(" ( ident ( "," ident )* )? ")" body
 block := expr [ "," expr ]+
 end := "{" block ( EOL block )+ "}"
 
-expr := value | extract | operation | apply | assign | match | between | print | action | if | case
+expr := value | extract | operation | apply | assign | match | between | print | action | if | case | template
 match := "match" "(" matcher ")"
 between := "between" "(" ( matcher | expr ) "," ( matcher | expr ) ")"
 matcher := regex | template | string | "json" | "logfmt" | "csv"
 regex := "/" REGEX "/" | "^" REGEX "$"
 template := "~" "\"" ( string | "<" NAME ">" | "<_>" )* "\""
 print := "print" "(" formatter ")"
-formatter := template | "json" | "pretty" | "logfmt" | "escape" | logical
+formatter := "json" | "pretty" | "logfmt" | "escape" | logical
 action := "next" | "exit"
 operation := expr ( op expr )?
 op := cmp_op | logical_op | arith_op
