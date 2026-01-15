@@ -2,7 +2,9 @@ use crate::{
     Error, Result,
     buildins::Procedure,
     csv, logfmt,
-    types::{Expr, Function, Map, Match, Number, Operator, Print, Type, Variable, wrapped_usize},
+    types::{
+        Array, Expr, Function, Map, Match, Number, Operator, Print, Type, Variable, wrapped_usize,
+    },
 };
 use indexmap::IndexMap;
 use std::{
@@ -343,6 +345,9 @@ pub(crate) fn eval<O: Write>(expr: &Expr, data: &mut Map, ctx: &mut Context<O>) 
 
                 if let Type::Array(arr) = cont {
                     let start = wrapped_usize(start, arr.len())?;
+                    if start >= arr.len() {
+                        return Ok(Type::Array(Array::default()));
+                    }
                     let stop = if let Some(ref stop) = stop {
                         wrapped_usize(stop, arr.len())?
                     } else {
@@ -357,7 +362,9 @@ pub(crate) fn eval<O: Write>(expr: &Expr, data: &mut Map, ctx: &mut Context<O>) 
 
                 let s = cont.as_string()?;
                 let start = wrapped_usize(start, s.len())?;
-                let acc = if let Some(ref stop) = stop {
+                let acc = if start >= s.len() {
+                    String::new()
+                } else if let Some(ref stop) = stop {
                     let stop = wrapped_usize(stop, s.len())?;
                     if start > stop {
                         return Err(Error::IndexError);
