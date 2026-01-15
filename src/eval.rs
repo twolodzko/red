@@ -390,22 +390,20 @@ pub(crate) fn eval<O: Write>(expr: &Expr, data: &mut Map, ctx: &mut Context<O>) 
             }
             For(key, iterable, body) => {
                 let iterable = eval(iterable, data, ctx)?;
-                let iter: Box<dyn Iterator<Item = Type>> = match iterable {
-                    Type::Array(ref a) => Box::new(a.iter().cloned()),
-                    Type::Map(ref m) => Box::new(m.keys().map(|k| Type::String(k.to_string()))),
+                match iterable {
+                    Type::Array(ref a) => for_iter(key, body, a.iter().cloned(), data, ctx),
+                    Type::Map(ref m) => {
+                        let iter = m.keys().map(|k| Type::String(k.to_string()));
+                        for_iter(key, body, iter, data, ctx)
+                    }
                     ref other => {
                         let s = other.as_string()?;
-                        Box::new(s.chars().map(|c| Type::String(c.to_string())))
-                    }
-                };
-                for v in iter {
-                    data.insert(key.to_string(), v.clone());
-                    if !eval_body(body, data, ctx)?.is_true() {
-                        return Ok(Type::FALSE);
+                        let iter = s.chars().map(|c| Type::String(c.to_string()));
+                        for_iter(key, body, iter, data, ctx)
                     }
                 }
-                Ok(Type::Null)
             }
+            Match(parser) => Ok(parser.matches(data, ctx)?.into()),
             Between(start, stop, inside) => {
                 if inside.is_true() {
                     if stop.matches(data, ctx)? {
@@ -420,7 +418,6 @@ pub(crate) fn eval<O: Write>(expr: &Expr, data: &mut Map, ctx: &mut Context<O>) 
                     Ok(ok.into())
                 }
             }
-            Match(parser) => Ok(parser.matches(data, ctx)?.into()),
             Print(print) => {
                 let s = print.format(data, ctx)?;
                 writeln!(ctx.out, "{}", s)?;
@@ -433,6 +430,25 @@ pub(crate) fn eval<O: Write>(expr: &Expr, data: &mut Map, ctx: &mut Context<O>) 
             }
         };
     }
+}
+
+fn for_iter<O: Write, I>(
+    key: &str,
+    body: &[Expr],
+    iter: I,
+    data: &mut Map,
+    ctx: &mut Context<O>,
+) -> Result<Type>
+where
+    I: IntoIterator<Item = Type>,
+{
+    for v in iter {
+        data.insert(key.to_string(), v);
+        if !eval_body(body, data, ctx)?.is_true() {
+            return Ok(Type::FALSE);
+        }
+    }
+    Ok(Type::Null)
 }
 
 fn env_get(key: &str) -> Option<String> {

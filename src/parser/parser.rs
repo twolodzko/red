@@ -228,6 +228,18 @@ impl<R: Reader> Parser<R> {
                 };
                 Expr::If(Box::new(cond), yes, no)
             }
+            Token::Ident(s) if s == "case" => self.case()?,
+            Token::Ident(s) if s == "for" => {
+                let key = match self.0.next_or_err()? {
+                    Token::Ident(key) => key,
+                    other => return Err(Error::WrongToken(other)),
+                };
+                self.expect(Token::Op(Operator::In))?;
+                let iterable = self.expr()?;
+                self.expect(Token::Bracket('{'))?;
+                let body = self.read_until(Token::Bracket('}'))?;
+                Expr::For(key, Box::new(iterable), body)
+            }
             Token::Ident(s) if s == "has" => {
                 self.expect(Token::Bracket('('))?;
                 match self.atom()? {
@@ -280,7 +292,6 @@ impl<R: Reader> Parser<R> {
                 }
                 Expr::Action(types::Action::Exit)
             }
-            Token::Ident(s) if s == "case" => self.case()?,
             Token::Ident(s) if s == "N" => Expr::Get(Variable::LineNumber),
             Token::Ident(s) | Token::QuotedIdent(s) => self.maybe_apply(s)?,
             Token::GlobalVar(s) => Expr::Get(Variable::Global(s)),

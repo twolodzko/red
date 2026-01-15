@@ -191,7 +191,7 @@ fn := "fn" ident "(" ( ident ( "," ident )* )? ")" body
 block := expr [ "," expr ]+
 end := "{" block ( EOL block )+ "}"
 
-expr := value | extract | operation | apply | assign | match | between | print | action | if | case | template
+expr := value | extract | operation | apply | assign | match | between | print | action | if | case | for | template
 match := "match" "(" matcher ")"
 between := "between" "(" ( matcher | expr ) "," ( matcher | expr ) ")"
 matcher := regex | template | string | "json" | "logfmt" | "csv"
@@ -219,8 +219,9 @@ string := "\"" [^"]* "\""
 extract := expr ( "[" range | expr "]" )+
 range := INT ( ":" INT )?
 if := "if" expr if_branch ( "else" if_branch )?
-if_branch := expr | "{" body "}"
+if_branch := expr | body
 case := "case" expr "{" case_branch ( EOL case_branch )* "}"
-case_branch := expr "{" body "}"
+case_branch := expr body
+for := "for" ident "in" expr body
 body := "{" ( expr ( "," expr )+ )* "}"
 ```
