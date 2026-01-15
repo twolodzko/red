@@ -59,8 +59,12 @@ const DETAILS: &str = color_print::cstr!(
   <u><s>print(formatter) takes the any of the following as an argument</s></u>
     <s>logfmt</s> local variables as lofgmt
     <s>json</s>, <s>pretty</s> local variables as JSON
-    <s>~"string <<expr>>"</s> interpolate the template
     or an expression that is executed before printing
+
+  <u><s>Templates</s></u>
+    String templates take form of <s>~"literal <<variable>> <<_>>"</s>, where the <s><<variable>></s> part is dynamic, and the <s><<_>></s> part is a wildcard pattern which is ignored. It behaves differently depending on where it is used:
+     * In <s>match(template)</s> it is used as a parser, where <s><<variable>></s>'s can be names of local variables, the parts of a string are assigned to them, if the whole template pattern matches.
+     * Otherwise, the template is filled with values of the evaluated <s><<variable>></s>'s and the result is collected to a string.
 
   <u><s>Actions</s></u>
     <s>next()</s> stop processing current block of commands and move to the next one
@@ -79,7 +83,7 @@ const DETAILS: &str = color_print::cstr!(
     The operator is overloaded and behaves differently based on the type of the value on its left-hand side:
      * number: it is equivalent to <s>lhs = lhs + rhs</s>,
      * string: it is equivalent to <s>lhs = lhs ++ rhs</s>,
-     * array: it appends the value to the array, so it's <s>lhs[len(lhs)+1] = rhs</s>,
+     * array: it appends the value to the array, so it is <s>lhs[len(lhs)+1] = rhs</s>,
      * count: it increments the counter for the <s>rhs</s> key, <s>lhs[rhs] += 1</s>.
 
   <u><s>Conditionals</s></u>
