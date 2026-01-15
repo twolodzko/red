@@ -70,7 +70,17 @@ const DETAILS: &str = color_print::cstr!(
     <s>+</s>, <s>-</s>, <s>*</s>, <s>/</s>, <s>%</s> (remainder), <s>^</s> (power)
 
   <u><s>Other operators</s></u>
-    <s>and</s>, <s>or</s>, <s><<</s>, <s><<=</s>, <s>>></s>, <s>>>=</s>, <s>==</s>, <s>!=</s>, <s>=~</s> (matches regex), <s>!~</s> (not matches regex), <s>++</s> (join), <s>+=</s> (append)
+    <s>and</s>, <s>or</s>, <s><<</s>, <s><<=</s>, <s>>></s>, <s>>>=</s>, <s>==</s>, <s>!=</s>, <s>++</s> (join)
+
+  <u><s>The match operators =~, !~</s></u>
+    The operators treat the right-hand side as a regular expression and try matching the left-hand side string against it.
+
+  <u><s>The append operator +=</s></u>
+    The operator is overloaded and behaves differently based on the type of the value on its left-hand side:
+     * number: it is equivalent to <s>lhs = lhs + rhs</s>,
+     * string: it is equivalent to <s>lhs = lhs ++ rhs</s>,
+     * array: it appends the value to the array, so it's <s>lhs[len(lhs)+1] = rhs</s>,
+     * count: it increments the counter for the <s>rhs</s> key, <s>lhs[rhs] += 1</s>.
 
   <u><s>Conditionals</s></u>
     <s>if cond { yes } else { no }</s>

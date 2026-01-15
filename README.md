@@ -92,6 +92,15 @@ Print command accepts the following arguments:
 * `next` - stop processing current block of commands and move to the next one
 * `exit` - stop processing the file and execute the `end` block
 
+### The append operator `+=`
+
+The operator is overloaded and behaves differently based on the type of the value on its left-hand side:
+
+* number: it is equivalent to `lhs = lhs + rhs`,
+* string: it is equivalent to `lhs = lhs ++ rhs`,
+* array: it appends the value to the array, so it's `lhs[len(lhs)+1] = rhs`,
+* count: it increments the counter for the `rhs` key, `lhs[rhs] += 1`.
+
 ### Conditionals
 
 ```text
