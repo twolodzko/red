@@ -83,14 +83,32 @@ Print command accepts the following arguments:
 
 * `json`, `pretty` - format local variables as JSON
 * `logfmt` - as above, but logfmt
-* `~"template <key>"` - interpolate the template with the local variables
-* `escape` - print line but escape it
 * or an expression which is evaluated before printing
+
+### Templates
+
+String templates take form of `~"literal <variable> <_>"`, where the `<variable>` part is dynamic, and the `<_>` part is a wildcard pattern which is ignored. It behaves differently depending on where it is used:
+
+* In `match(template)` it is used as a parser, where `<variable>`'s can be names of local variables, the parts of a string are assigned to them, if the whole template pattern matches.
+* Otherwise, the template is filled with values of the evaluated `<variable>`'s and the result is collected to a string.
 
 ### Actions
 
 * `next` - stop processing current block of commands and move to the next one
 * `exit` - stop processing the file and execute the `end` block
+
+### The match operators `=~`, `!~`
+
+The operators treat the right-hand side as a regular expression and try matching the left-hand side string against it.
+
+### The append operator `+=`
+
+The operator is overloaded and behaves differently based on the type of the value on its left-hand side:
+
+* number: it is equivalent to `lhs = lhs + rhs`,
+* string: it is equivalent to `lhs = lhs ++ rhs`,
+* array: it appends the value to the array, so it's `lhs[len(lhs)+1] = rhs`,
+* count: it increments the counter for the `rhs` key, `lhs[rhs] += 1`.
 
 ### Conditionals
 
@@ -155,8 +173,7 @@ If multiple `end` blocks are declared, they are merged.
 | Print line with index        | `{ print NR, $0 }`                                             | `print(~"<N+1> <.>")`                                                 |
 | Print specific fields        | `BEGIN { FS=";" } { print $2, $5 }`                            | `a = split(., ";"), print(~"<a[1]> <a[4]>")`                          |
 | Find longest line length     | `{ if (length($0) > max) max = length($0) } END { print max }` | `var &max = 0; if (len(.) > &max) &max = len(.); end { print(&max) }` |
-| Reverse lines order          | `{ s = $0 "\n" s } END { print s }`                            | `var &s = ""; &s = ~"<.>\n<&s>"; end { print(&s)`                     |
-|                              | `{ a[i++]=$0 } END { for (j=i-1; j>=0;) print a[j--] }`        | `var &a = []; &a[len(&a)] = .; end { print(join(rev(&a), "\n")) }`    |
+| Reverse lines order          | `{ a[i++]=$0 } END { for (j=i-1; j>=0;) print a[j--] }`        | `var &a = []; &a += .; end { print(join(rev(&a), "\n")) }`            |
 
 ## Grammar
 

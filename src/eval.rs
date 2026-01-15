@@ -2,7 +2,9 @@ use crate::{
     Error, Result,
     buildins::Procedure,
     csv, logfmt,
-    types::{Expr, Function, Map, Match, Number, Operator, Print, Type, Variable},
+    types::{
+        Array, Expr, Function, Map, Match, Number, Operator, Print, Type, Variable, wrapped_usize,
+    },
 };
 use indexmap::IndexMap;
 use std::{
@@ -170,12 +172,9 @@ pub(crate) fn eval<O: Write>(expr: &Expr, data: &mut Map, ctx: &mut Context<O>) 
                     Type::Map(map) => map.get_rec(&keys)?.unwrap_or(Type::Null),
                     Type::Array(arr) => arr.get_rec(&keys)?.unwrap_or(Type::Null),
                     other => {
-                        let index = if keys.len() == 1 {
-                            usize::try_from(&keys[0])?
-                        } else {
-                            return Err(Error::IndexError);
-                        };
-                        let val = if let Some(c) = other.as_string()?.chars().nth(index) {
+                        let s = other.as_string()?;
+                        let index = wrapped_usize(&keys[0], s.len())?;
+                        let val = if let Some(c) = s.chars().nth(index) {
                             c.to_string()
                         } else {
                             String::new()
@@ -335,26 +334,44 @@ pub(crate) fn eval<O: Write>(expr: &Expr, data: &mut Map, ctx: &mut Context<O>) 
                 add_assign(old, &rhs)?;
                 Ok(Type::Null)
             }
-            Slice(cont, lhs, rhs) => {
+            Slice(cont, start, stop) => {
                 let cont = eval(cont, data, ctx)?;
-                let lhs = usize::try_from(&eval(lhs, data, ctx)?)?;
+                let start = &eval(start, data, ctx)?;
+                let stop = if let Some(expr) = stop {
+                    Some(eval(expr, data, ctx)?)
+                } else {
+                    None
+                };
 
                 if let Type::Array(arr) = cont {
-                    let rhs = if let Some(rhs) = rhs {
-                        usize::try_from(&eval(rhs, data, ctx)?)?
+                    let start = wrapped_usize(start, arr.len())?;
+                    if start >= arr.len() {
+                        return Ok(Type::Array(Array::default()));
+                    }
+                    let stop = if let Some(ref stop) = stop {
+                        wrapped_usize(stop, arr.len())?
                     } else {
-                        arr.len()
+                        arr.len() - 1
                     };
-                    let acc = arr.slice(lhs, rhs).unwrap_or_default();
+                    if start > stop {
+                        return Err(Error::IndexError);
+                    }
+                    let acc = arr.slice(start, stop).unwrap_or_default();
                     return Ok(Type::Array(acc));
                 }
 
                 let s = cont.as_string()?;
-                let acc = if let Some(rhs) = rhs {
-                    let rhs = usize::try_from(&eval(rhs, data, ctx)?)?;
-                    s.get(lhs..rhs).unwrap_or_default().to_string()
+                let start = wrapped_usize(start, s.len())?;
+                let acc = if start >= s.len() {
+                    String::new()
+                } else if let Some(ref stop) = stop {
+                    let stop = wrapped_usize(stop, s.len())?;
+                    if start > stop {
+                        return Err(Error::IndexError);
+                    }
+                    s.get(start..=stop).unwrap_or_default().to_string()
                 } else {
-                    s.get(lhs..).unwrap_or_default().to_string()
+                    s.get(start..).unwrap_or_default().to_string()
                 };
                 Ok(Type::String(acc))
             }
@@ -473,7 +490,11 @@ fn add_assign(lhs: &mut Type, rhs: &Type) -> Result<()> {
                 lhs.0.insert(key, 1);
             }
         }
-        _ => *lhs = lhs.join(rhs)?,
+        Type::Array(lhs) => lhs.push(rhs.clone()),
+        _ => {
+            let s = format!("{}{}", lhs, rhs.as_string()?);
+            *lhs = Type::String(s);
+        }
     }
     Ok(())
 }
