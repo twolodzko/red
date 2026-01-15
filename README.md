@@ -136,7 +136,16 @@ fn name(arg1, arg2, ...) {
 
 ### Iterating and looping
 
-Tail-call optimization allows for looping using recursive function calls.
+Iterating is possible using for loops that iterate over characters in string, elements in array, or keys in maps. 
+The syntax for the loop is:
+
+```text
+for key in iterable {
+  expr1, expr2, ...
+}
+```
+
+Alternatively, tail-call optimization allows for looping using recursive function calls.
 
 ### `end` block
 

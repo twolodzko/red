@@ -347,6 +347,15 @@ fn error() {
         "hello, world!\n";
         "custom function"
     )]
+#[test_case(
+        r"end {
+            for x in [1,2,3,4,5] {
+                print(x)
+            }
+        }",
+        "1\n2\n3\n4\n5\n";
+        "for loop"
+    )]
 fn end(input: &str, expected: &str) {
     let mut parser = Parser::from(input.to_string());
     let program = parser.parse().unwrap();
