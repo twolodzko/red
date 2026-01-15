@@ -83,14 +83,23 @@ Print command accepts the following arguments:
 
 * `json`, `pretty` - format local variables as JSON
 * `logfmt` - as above, but logfmt
-* `~"template <key>"` - interpolate the template with the local variables
-* `escape` - print line but escape it
 * or an expression which is evaluated before printing
+
+### Templates
+
+String templates take form of `~"literal <variable> <_>"`, where the `<variable>` part is dynamic, and the `<_>` part is a wildcard pattern which is ignored. It behaves differently depending on where it is used:
+
+* In `match(template)` it is used as a parser, where `<variable>`'s can be names of local variables, the parts of a string are assigned to them, if the whole template pattern matches.
+* Otherwise, the template is filled with values of the evaluated `<variable>`'s and the result is collected to a string.
 
 ### Actions
 
 * `next` - stop processing current block of commands and move to the next one
 * `exit` - stop processing the file and execute the `end` block
+
+### The match operators `=~`, `!~`
+
+The operators treat the right-hand side as a regular expression and try matching the left-hand side string against it.
 
 ### The append operator `+=`
 
