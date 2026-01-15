@@ -19,7 +19,7 @@ impl Array {
     }
 
     pub(crate) fn get_rec(&self, keys: &[Type]) -> Result<Option<Type>> {
-        let index = usize::try_from(&keys[0])?;
+        let index = super::wrapped_usize(&keys[0], self.len())?;
         let rest = &keys[1..];
         let val = match self.0.get(index) {
             Some(val) => val,
@@ -48,7 +48,7 @@ impl Array {
     }
 
     pub(crate) fn insert_rec(&mut self, keys: &[Type], value: Type) -> Result<()> {
-        let index = usize::try_from(&keys[0])?;
+        let index = super::wrapped_usize(&keys[0], self.len())?;
         let rest = &keys[1..];
         let old = match self.0.get_mut(index) {
             Some(old) => old,
@@ -74,7 +74,7 @@ impl Array {
     }
 
     pub(crate) fn get_mut_rec<'a>(&'a mut self, keys: &[Type]) -> Result<&'a mut Type> {
-        let index = usize::try_from(&keys[0])?;
+        let index = super::wrapped_usize(&keys[0], self.len())?;
         let rest = &keys[1..];
         let val = match self.0.get_mut(index) {
             Some(val) => val,
@@ -106,7 +106,7 @@ impl Array {
     }
 
     pub(crate) fn slice(&self, start: usize, stop: usize) -> Option<Array> {
-        Some(self.0.get(start..stop)?.to_vec().into())
+        Some(self.0.get(start..=stop)?.to_vec().into())
     }
 
     pub(crate) fn reverse(&self) -> Array {

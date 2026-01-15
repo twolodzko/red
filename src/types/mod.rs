@@ -16,3 +16,16 @@ pub(crate) use number::Number;
 pub(crate) use operator::Operator;
 pub(crate) use regex::Regex;
 pub(crate) use template::Template;
+
+pub(crate) fn wrapped_usize(value: &Type, bound: usize) -> crate::Result<usize> {
+    if bound == 0 {
+        return Ok(0);
+    }
+    let num = Number::try_from(value)?;
+    if num.is_negative() {
+        let num = usize::try_from(num.abs())?;
+        Ok(bound.wrapping_sub(num))
+    } else {
+        Ok(usize::try_from(num)?)
+    }
+}

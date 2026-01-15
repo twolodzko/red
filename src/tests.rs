@@ -109,17 +109,17 @@ impl std::io::Write for WriteMock {
         "full slice of array"
     )]
 #[test_case(
-        "[0,1,2,3,4,5,6][3:6]",
+        "[0,1,2,3,4,5,6][3:5]",
         "[3, 4, 5]";
         "slice of array"
     )]
 #[test_case(
-        "'abcdefg'[3:6]",
+        "'abcdefg'[3:5]",
         "\"def\"";
         "slice of string"
     )]
 #[test_case(
-        "'abcdefg'[:3]",
+        "'abcdefg'[:2]",
         "\"abc\"";
         "left-open slice of string"
     )]
@@ -129,7 +129,7 @@ impl std::io::Write for WriteMock {
         "right-open slice of string"
     )]
 #[test_case(
-        "upper('abcdefg')[3:6]",
+        "upper('abcdefg')[3:5]",
         "\"DEF\"";
         "slice of function return"
     )]
@@ -283,6 +283,21 @@ impl std::io::Write for WriteMock {
         "false";
         "assertions work in bodies"
     )]
+#[test_case(
+        "[1,2,3,4,5][-3]",
+        "3";
+        "negative indexes"
+    )]
+#[test_case(
+        "[[1,2,3,4,5]][-1][-3]",
+        "3";
+        "negative indexes when nested"
+    )]
+#[test_case(
+        "'hello!'[-2]",
+        "\"o\"";
+        "negative indexes for string"
+    )]
 fn eval_expr(input: &str, expected: &str) {
     let mut parser = Parser::from(input.to_string());
     let expr = parser.expr().unwrap();
@@ -424,7 +439,7 @@ fn instruction_negative(input: &str) {
         "get set nested maps"
     )]
 #[test_case(
-        "&m = {a:[1,2,3,4,5]}, out = &m['a'][1:3], print(logfmt)",
+        "&m = {a:[1,2,3,4,5]}, out = &m['a'][1:2], print(logfmt)",
         "out=\"[2,3]\"";
         "get from map and slice"
     )]
@@ -444,7 +459,7 @@ fn instruction_negative(input: &str) {
         "quoted identifier"
     )]
 #[test_case(
-        ". = .[0:3], print(.)",
+        ". = .[0:2], print(.)",
         "pre";
         "replace line"
     )]
