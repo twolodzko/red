@@ -465,7 +465,11 @@ fn add_assign(lhs: &mut Type, rhs: &Type) -> Result<()> {
                 lhs.0.insert(key, 1);
             }
         }
-        _ => *lhs = lhs.join(rhs)?,
+        Type::Array(lhs) => lhs.push(rhs.clone()),
+        _ => {
+            let s = format!("{}{}", lhs, rhs.as_string()?);
+            *lhs = Type::String(s);
+        }
     }
     Ok(())
 }

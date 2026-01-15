@@ -155,8 +155,8 @@ If multiple `end` blocks are declared, they are merged.
 | Print line with index        | `{ print NR, $0 }`                                             | `print(~"<N+1> <.>")`                                                 |
 | Print specific fields        | `BEGIN { FS=";" } { print $2, $5 }`                            | `a = split(., ";"), print(~"<a[1]> <a[4]>")`                          |
 | Find longest line length     | `{ if (length($0) > max) max = length($0) } END { print max }` | `var &max = 0; if (len(.) > &max) &max = len(.); end { print(&max) }` |
-| Reverse lines order          | `{ s = $0 "\n" s } END { print s }`                            | `var &s = ""; &s = ~"<.>\n<&s>"; end { print(&s)`                     |
-|                              | `{ a[i++]=$0 } END { for (j=i-1; j>=0;) print a[j--] }`        | `var &a = []; &a[len(&a)] = .; end { print(join(rev(&a), "\n")) }`    |
+| Reverse lines order (1)      | `{ s = $0 "\n" s } END { print s }`                            | `var &s = ""; &s = ~"<.>\n<&s>"; end { print(&s)`                     |
+| Reverse lines order (2)      | `{ a[i++]=$0 } END { for (j=i-1; j>=0;) print a[j--] }`        | `var &a = []; &a += .; end { print(join(rev(&a), "\n")) }`            |
 
 ## Grammar
 
