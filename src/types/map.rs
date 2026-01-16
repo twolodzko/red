@@ -1,9 +1,9 @@
 use crate::{Error, Result, Type, join, types::Collection};
 use serde::{Serialize, Serializer, ser::SerializeMap};
-use std::collections::{BTreeMap, HashMap};
+use std::collections::HashMap;
 
 #[derive(Clone, Default)]
-pub(crate) struct Map(BTreeMap<String, Type>);
+pub(crate) struct Map(HashMap<String, Type>);
 
 impl Map {
     pub(crate) fn new() -> Self {
@@ -44,7 +44,7 @@ impl Map {
     }
 
     pub(crate) fn from_json(s: &str) -> Result<Self> {
-        let json: indexmap::IndexMap<String, serde_json::Value> = serde_json::from_str(s)?;
+        let json: HashMap<String, serde_json::Value> = serde_json::from_str(s)?;
         let mut acc = Map::new();
         for (ref k, v) in json {
             acc.insert(k.to_string(), v.into());
@@ -60,7 +60,7 @@ impl Map {
         self.0.iter().any(|(k, _)| k == key)
     }
 
-    pub(crate) fn iter<'a>(&'a self) -> std::collections::btree_map::Iter<'a, String, Type> {
+    pub(crate) fn iter<'a>(&'a self) -> std::collections::hash_map::Iter<'a, String, Type> {
         self.0.iter()
     }
 
