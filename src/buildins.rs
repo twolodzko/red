@@ -1,7 +1,7 @@
 use crate::{
     Error, Result,
     eval::Context,
-    types::{Array, Count, Map, Number, Type},
+    types::{Array, Collection, Count, Map, Number, Type},
 };
 use std::{
     borrow::Cow,

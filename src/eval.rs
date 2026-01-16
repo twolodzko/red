@@ -3,7 +3,8 @@ use crate::{
     buildins::Procedure,
     csv, logfmt,
     types::{
-        Array, Expr, Function, Map, Match, Number, Operator, Print, Type, Variable, wrapped_usize,
+        Array, Collection, Expr, Function, Map, Match, Number, Operator, Print, Type, Variable,
+        wrapped_usize,
     },
 };
 use indexmap::IndexMap;

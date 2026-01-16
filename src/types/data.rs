@@ -283,3 +283,16 @@ fn unify_to_compare<'a>(lhs: &'a Type, rhs: &'a Type) -> (Cow<'a, Type>, Cow<'a,
         _ => (Cow::Borrowed(lhs), Cow::Borrowed(rhs)),
     }
 }
+
+pub(crate) trait Collection<T> {
+    fn is_empty(&self) -> bool;
+    fn len(&self) -> usize;
+    fn sorted(&self) -> T;
+    fn reverse(&self) -> T;
+    fn flatten(&self) -> T;
+    fn join(&self, other: &T) -> T;
+    fn get_rec(&self, keys: &[Type]) -> Result<Option<Type>>;
+    fn get_mut_rec<'a>(&'a mut self, keys: &[Type]) -> Result<&'a mut Type>;
+    fn insert_rec(&mut self, keys: &[Type], value: Type) -> Result<()>;
+    fn to_json(&self) -> Result<String>;
+}

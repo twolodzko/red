@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{Error, Result, Type, join};
+use crate::{Error, Result, Type, join, types::Collection};
 use serde::{Serialize, Serializer, ser::SerializeMap};
 
 #[derive(Clone, Default)]
@@ -34,83 +34,6 @@ impl Map {
         None
     }
 
-    pub(crate) fn get_rec(&self, keys: &[Type]) -> Result<Option<Type>> {
-        let key = &keys[0].as_string()?;
-        let rest = &keys[1..];
-        let val = match self.get(key.as_ref()) {
-            Some(val) => val,
-            None => return Ok(None),
-        };
-
-        if rest.is_empty() {
-            return Ok(Some(val.clone()));
-        }
-
-        if rest.len() == 1
-            && let Type::String(s) = val
-        {
-            let index = usize::try_from(&rest[0])?;
-            return match s.chars().nth(index) {
-                Some(c) => Ok(Some(Type::String(c.to_string()))),
-                None => Ok(None),
-            };
-        }
-
-        match val {
-            Type::Map(map) => map.get_rec(rest),
-            Type::Array(arr) => arr.get_rec(rest),
-            _ => Err(Error::NotMap),
-        }
-    }
-
-    pub(crate) fn insert_rec(&mut self, keys: &[Type], value: Type) -> Result<()> {
-        let key = &keys[0].as_string()?;
-        let rest = &keys[1..];
-        let old = match self.get_mut(key.as_ref()) {
-            Some(old) => old,
-            None => {
-                if rest.is_empty() {
-                    self.insert(key.to_string(), value);
-                    return Ok(());
-                } else {
-                    return Err(Error::NotMap);
-                }
-            }
-        };
-
-        if rest.is_empty() {
-            *old = value;
-        } else {
-            match old {
-                Type::Map(map) => map.insert_rec(rest, value)?,
-                Type::Array(arr) => arr.insert_rec(rest, value)?,
-                _ => return Err(Error::NotMap),
-            }
-        }
-        Ok(())
-    }
-
-    pub(crate) fn get_mut_rec<'a>(&'a mut self, keys: &[Type]) -> Result<&'a mut Type> {
-        let key = &keys[0].as_string()?;
-        let rest = &keys[1..];
-        let val = match self.get_mut(key.as_ref()) {
-            Some(val) => val,
-            None => return Err(Error::NotMap),
-        };
-        if rest.is_empty() {
-            return Ok(val);
-        }
-        match val {
-            Type::Map(map) => map.get_mut_rec(rest),
-            Type::Array(arr) => arr.get_mut_rec(rest),
-            _ => Err(Error::NotMap),
-        }
-    }
-
-    pub(crate) fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
     pub(crate) fn to_logfmt(&self) -> Result<String> {
         let val = self
             .0
@@ -141,32 +64,8 @@ impl Map {
         Ok(acc)
     }
 
-    pub(crate) fn to_json(&self) -> Result<String> {
-        Ok(serde_json::to_string(self)?)
-    }
-
     pub(crate) fn to_pretty(&self) -> Result<String> {
         Ok(serde_json::to_string_pretty(self)?)
-    }
-
-    pub(crate) fn flatten(&self) -> Map {
-        let mut acc = Map::new();
-        for (k, v) in self.0.iter() {
-            if let Type::Map(m) = v
-                && !m.is_empty()
-            {
-                for (k2, v2) in m.flatten().0.iter() {
-                    acc.insert(format!("{k}.{k2}"), v2.clone());
-                }
-            } else {
-                acc.insert(k.to_string(), v.clone());
-            }
-        }
-        acc
-    }
-
-    pub(crate) fn len(&self) -> usize {
-        self.0.len()
     }
 
     pub(crate) fn contains_key(&self, key: &str) -> bool {
@@ -175,26 +74,6 @@ impl Map {
 
     pub(crate) fn iter<'a>(&'a self) -> core::slice::Iter<'a, (String, Type)> {
         self.0.iter()
-    }
-
-    pub(crate) fn join(&self, other: &Map) -> Self {
-        let mut acc = Map::new();
-        self.iter()
-            .for_each(|(k, v)| acc.insert(k.to_string(), v.clone()));
-        other
-            .iter()
-            .for_each(|(k, v)| acc.insert(k.to_string(), v.clone()));
-        acc
-    }
-
-    pub(crate) fn reverse(&self) -> Self {
-        Map(self.0.iter().cloned().rev().collect())
-    }
-
-    pub(crate) fn sorted(&self) -> Self {
-        let mut acc = self.0.clone();
-        acc.sort_by(|(k1, _), (k2, _)| k1.cmp(k2));
-        Map(acc)
     }
 
     pub(crate) fn keys(&self) -> impl Iterator<Item = &String> {
@@ -295,9 +174,132 @@ fn quote(line: String) -> String {
     format!("\"{}\"", line.replace('\\', "\\\\").replace('"', "\\\""))
 }
 
+impl Collection<Map> for Map {
+    fn get_rec(&self, keys: &[Type]) -> Result<Option<Type>> {
+        let key = &keys[0].as_string()?;
+        let rest = &keys[1..];
+        let val = match self.get(key.as_ref()) {
+            Some(val) => val,
+            None => return Ok(None),
+        };
+
+        if rest.is_empty() {
+            return Ok(Some(val.clone()));
+        }
+
+        if rest.len() == 1
+            && let Type::String(s) = val
+        {
+            let index = usize::try_from(&rest[0])?;
+            return match s.chars().nth(index) {
+                Some(c) => Ok(Some(Type::String(c.to_string()))),
+                None => Ok(None),
+            };
+        }
+
+        match val {
+            Type::Map(map) => map.get_rec(rest),
+            Type::Array(arr) => arr.get_rec(rest),
+            _ => Err(Error::NotMap),
+        }
+    }
+
+    fn insert_rec(&mut self, keys: &[Type], value: Type) -> Result<()> {
+        let key = &keys[0].as_string()?;
+        let rest = &keys[1..];
+        let old = match self.get_mut(key.as_ref()) {
+            Some(old) => old,
+            None => {
+                if rest.is_empty() {
+                    self.insert(key.to_string(), value);
+                    return Ok(());
+                } else {
+                    return Err(Error::NotMap);
+                }
+            }
+        };
+
+        if rest.is_empty() {
+            *old = value;
+        } else {
+            match old {
+                Type::Map(map) => map.insert_rec(rest, value)?,
+                Type::Array(arr) => arr.insert_rec(rest, value)?,
+                _ => return Err(Error::NotMap),
+            }
+        }
+        Ok(())
+    }
+
+    fn get_mut_rec<'a>(&'a mut self, keys: &[Type]) -> Result<&'a mut Type> {
+        let key = &keys[0].as_string()?;
+        let rest = &keys[1..];
+        let val = match self.get_mut(key.as_ref()) {
+            Some(val) => val,
+            None => return Err(Error::NotMap),
+        };
+        if rest.is_empty() {
+            return Ok(val);
+        }
+        match val {
+            Type::Map(map) => map.get_mut_rec(rest),
+            Type::Array(arr) => arr.get_mut_rec(rest),
+            _ => Err(Error::NotMap),
+        }
+    }
+
+    fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    fn to_json(&self) -> Result<String> {
+        Ok(serde_json::to_string(self)?)
+    }
+
+    fn flatten(&self) -> Map {
+        let mut acc = Map::new();
+        for (k, v) in self.0.iter() {
+            if let Type::Map(m) = v
+                && !m.is_empty()
+            {
+                for (k2, v2) in m.flatten().0.iter() {
+                    acc.insert(format!("{k}.{k2}"), v2.clone());
+                }
+            } else {
+                acc.insert(k.to_string(), v.clone());
+            }
+        }
+        acc
+    }
+
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    fn join(&self, other: &Map) -> Self {
+        let mut acc = Map::new();
+        self.iter()
+            .for_each(|(k, v)| acc.insert(k.to_string(), v.clone()));
+        other
+            .iter()
+            .for_each(|(k, v)| acc.insert(k.to_string(), v.clone()));
+        acc
+    }
+
+    fn reverse(&self) -> Self {
+        Map(self.0.iter().cloned().rev().collect())
+    }
+
+    fn sorted(&self) -> Self {
+        let mut acc = self.0.clone();
+        acc.sort_by(|(k1, _), (k2, _)| k1.cmp(k2));
+        Map(acc)
+    }
+}
+
 #[cfg(test)]
 pub(crate) mod tests {
-    use super::Map;
+    use super::{Collection, Map};
 
     #[test]
     fn serde() {
