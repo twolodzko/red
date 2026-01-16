@@ -1,10 +1,13 @@
 use crate::{
     Error, Result,
     eval::{Context, eval},
-    reader::Reader,
     types::{Action, Block, Map, Program, Type},
 };
-use std::{fs::File, io::Write, path::PathBuf};
+use std::{
+    fs::File,
+    io::{BufRead, BufReader, Write},
+    path::PathBuf,
+};
 
 macro_rules! error {
     ( $msg:expr ) => {{
@@ -13,7 +16,10 @@ macro_rules! error {
 }
 
 impl Program {
-    pub fn process_reader<O: Write>(&self, reader: Reader, out: &mut O) -> Result<()> {
+    pub fn process_reader<O: Write, I>(&self, reader: I, out: &mut O) -> Result<()>
+    where
+        I: Iterator<Item = std::io::Result<String>>,
+    {
         let mut ctx = self.new_context(out)?;
         self.process_lines(&mut ctx, reader)?;
         self.finish(&mut ctx)
@@ -22,13 +28,12 @@ impl Program {
     pub fn process_files<O: Write>(&self, files: &[PathBuf], out: &mut O) -> Result<()> {
         let mut ctx = self.new_context(out)?;
         for path in files.iter() {
-            let file = File::open(path)?;
-            let inp = Reader::from(file);
+            let file = BufReader::new(File::open(path)?);
             ctx.globals.insert(
                 "FILENAME".to_string(),
                 Type::String(path.to_string_lossy().to_string()),
             );
-            self.process_lines(&mut ctx, inp)?;
+            self.process_lines(&mut ctx, file.lines())?;
         }
         self.finish(&mut ctx)
     }
@@ -45,8 +50,11 @@ impl Program {
         Ok(ctx)
     }
 
-    pub(crate) fn process_lines<O: Write>(&self, ctx: &mut Context<O>, inp: Reader) -> Result<()> {
-        for line in inp.lines() {
+    pub(crate) fn process_lines<O: Write, I>(&self, ctx: &mut Context<O>, inp: I) -> Result<()>
+    where
+        I: Iterator<Item = std::io::Result<String>>,
+    {
+        for line in inp {
             ctx.line = line?;
             match self.apply(ctx) {
                 Err(msg) => error!(msg),

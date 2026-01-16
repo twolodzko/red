@@ -4,7 +4,6 @@ mod eval;
 mod logfmt;
 pub mod parser;
 pub mod program;
-pub mod reader;
 mod types;
 
 pub use crate::types::Program;

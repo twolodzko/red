@@ -136,8 +136,7 @@ fn name(arg1, arg2, ...) {
 
 ### Iterating and looping
 
-Iterating is possible using for loops that iterate over characters in string, elements in array, or keys in maps. 
-The syntax for the loop is:
+Iterating is possible using for loops that iterate over characters in string, elements in array, or keys in maps. The syntax for the loop is:
 
 ```text
 for key in iterable {

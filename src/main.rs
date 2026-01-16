@@ -1,6 +1,9 @@
 use clap::Parser;
-use red::{Error, Program, parser, reader};
-use std::path::PathBuf;
+use red::{Error, Program, parser};
+use std::{
+    io::{BufRead, BufReader},
+    path::PathBuf,
+};
 
 const DETAILS: &str = color_print::cstr!(
     r#"<u><s>Language</s></u>
@@ -189,8 +192,8 @@ fn main() {
 
     let out = &mut std::io::stdout().lock();
     if let Err(msg) = if args.files.is_empty() {
-        let inp = reader::Reader::from(std::io::stdin());
-        program.process_reader(inp, out)
+        let inp = BufReader::new(std::io::stdin());
+        program.process_reader(inp.lines(), out)
     } else {
         program.process_files(&args.files, out)
     } {
