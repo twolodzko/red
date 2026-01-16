@@ -21,7 +21,7 @@ pub(crate) struct Context<O: Write> {
     pub(crate) done: bool,
     pub(crate) buildins: HashMap<String, Procedure>,
     pub(crate) funs: HashMap<String, Function>,
-    pub(crate) globals: HashMap<String, Type>,
+    pub(crate) globals: Map,
     pub(crate) print_matched: bool,
     pub(crate) out: O,
 }

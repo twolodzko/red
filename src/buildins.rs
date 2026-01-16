@@ -149,7 +149,7 @@ impl<O: Write> Context<O> {
             done: false,
             buildins: HashMap::new(),
             funs: HashMap::new(),
-            globals: HashMap::new(),
+            globals: Map::new(),
             print_matched: false,
             out,
         };
@@ -401,12 +401,9 @@ fn sort(args: &[Type]) -> Result<Type> {
     if args.len() != 1 {
         return Err(Error::WrongArgumentsNumber);
     }
-    if let Type::Array(arr) = &args[0] {
-        return Ok(Type::Array(arr.sort()));
-    }
     let val = match &args[0] {
-        Type::Array(arr) => Type::Array(arr.sort()),
-        Type::Map(map) => Type::Map(map.sort()),
+        Type::Array(arr) => Type::Array(arr.sorted()),
+        Type::Map(map) => Type::Map(map.sorted()),
         _ => return Err(Error::WrongType),
     };
     Ok(val)

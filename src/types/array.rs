@@ -113,7 +113,7 @@ impl Array {
         Array::from(self.0.iter().cloned().rev().collect::<Vec<Type>>())
     }
 
-    pub(crate) fn sort(&self) -> Array {
+    pub(crate) fn sorted(&self) -> Array {
         let mut arr = self.0.clone();
         arr.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
         Array(arr)

@@ -1,9 +1,10 @@
-use crate::{Error, Result, Type, join};
-use indexmap::{IndexMap, map::Iter};
-use serde::Serialize;
+use std::collections::HashMap;
 
-#[derive(Clone, Serialize, Default, PartialEq)]
-pub(crate) struct Map(IndexMap<String, Type>);
+use crate::{Error, Result, Type, join};
+use serde::{Serialize, Serializer, ser::SerializeMap};
+
+#[derive(Clone, Default)]
+pub(crate) struct Map(Vec<(String, Type)>);
 
 impl Map {
     pub(crate) fn new() -> Self {
@@ -11,17 +12,32 @@ impl Map {
     }
 
     pub(crate) fn insert(&mut self, key: String, value: Type) {
-        self.0.insert(key, value);
+        for (k, v) in self.0.iter_mut() {
+            if *k == key {
+                *v = value;
+                return;
+            }
+        }
+        self.0.push((key, value));
     }
 
     pub(crate) fn get(&self, key: &str) -> Option<&Type> {
-        self.0.get(key)
+        self.0
+            .iter()
+            .find_map(|(k, v)| if k == key { Some(v) } else { None })
+    }
+
+    pub(crate) fn get_mut(&mut self, key: &str) -> Option<&mut Type> {
+        if let Some(index) = self.0.iter().position(|(k, _)| k == key) {
+            return self.0.get_mut(index).map(|(_, v)| v);
+        }
+        None
     }
 
     pub(crate) fn get_rec(&self, keys: &[Type]) -> Result<Option<Type>> {
         let key = &keys[0].as_string()?;
         let rest = &keys[1..];
-        let val = match self.0.get(key.as_ref()) {
+        let val = match self.get(key.as_ref()) {
             Some(val) => val,
             None => return Ok(None),
         };
@@ -50,11 +66,11 @@ impl Map {
     pub(crate) fn insert_rec(&mut self, keys: &[Type], value: Type) -> Result<()> {
         let key = &keys[0].as_string()?;
         let rest = &keys[1..];
-        let old = match self.0.get_mut(key.as_ref()) {
+        let old = match self.get_mut(key.as_ref()) {
             Some(old) => old,
             None => {
                 if rest.is_empty() {
-                    self.0.insert(key.to_string(), value);
+                    self.insert(key.to_string(), value);
                     return Ok(());
                 } else {
                     return Err(Error::NotMap);
@@ -77,7 +93,7 @@ impl Map {
     pub(crate) fn get_mut_rec<'a>(&'a mut self, keys: &[Type]) -> Result<&'a mut Type> {
         let key = &keys[0].as_string()?;
         let rest = &keys[1..];
-        let val = match self.0.get_mut(key.as_ref()) {
+        let val = match self.get_mut(key.as_ref()) {
             Some(val) => val,
             None => return Err(Error::NotMap),
         };
@@ -89,10 +105,6 @@ impl Map {
             Type::Array(arr) => arr.get_mut_rec(rest),
             _ => Err(Error::NotMap),
         }
-    }
-
-    pub(crate) fn get_mut(&mut self, key: &str) -> Option<&mut Type> {
-        self.0.get_mut(key)
     }
 
     pub(crate) fn is_empty(&self) -> bool {
@@ -121,7 +133,7 @@ impl Map {
     }
 
     pub(crate) fn from_json(s: &str) -> Result<Self> {
-        let json: IndexMap<String, serde_json::Value> = serde_json::from_str(s)?;
+        let json: indexmap::IndexMap<String, serde_json::Value> = serde_json::from_str(s)?;
         let mut acc = Map::new();
         for (ref k, v) in json {
             acc.insert(k.to_string(), v.into());
@@ -158,10 +170,10 @@ impl Map {
     }
 
     pub(crate) fn contains_key(&self, key: &str) -> bool {
-        self.0.contains_key(key)
+        self.0.iter().any(|(k, _)| k == key)
     }
 
-    pub(crate) fn iter<'a>(&'a self) -> Iter<'a, String, Type> {
+    pub(crate) fn iter<'a>(&'a self) -> core::slice::Iter<'a, (String, Type)> {
         self.0.iter()
     }
 
@@ -176,40 +188,31 @@ impl Map {
     }
 
     pub(crate) fn reverse(&self) -> Self {
-        let mut acc = Map::new();
-        for k in self.0.keys().rev() {
-            acc.insert(k.to_string(), self.0[k].clone());
-        }
-        acc
+        Map(self.0.iter().cloned().rev().collect())
     }
 
-    pub(crate) fn sort(&self) -> Self {
-        let mut acc = Map::new();
-        let mut keys: Vec<String> = self.0.keys().cloned().collect();
-        keys.sort();
-        for k in keys {
-            let v = self.0[&k].clone();
-            acc.insert(k, v);
-        }
-        acc
+    pub(crate) fn sorted(&self) -> Self {
+        let mut acc = self.0.clone();
+        acc.sort_by(|(k1, _), (k2, _)| k1.cmp(k2));
+        Map(acc)
     }
 
     pub(crate) fn keys(&self) -> impl Iterator<Item = &String> {
-        self.0.keys()
+        self.0.iter().map(|(k, _)| k)
     }
 
     pub(crate) fn values(&self) -> impl Iterator<Item = &Type> {
-        self.0.values()
+        self.0.iter().map(|(_, v)| v)
     }
 }
 
 impl From<serde_json::Map<String, serde_json::Value>> for Map {
     fn from(value: serde_json::Map<String, serde_json::Value>) -> Self {
-        let mut acc = IndexMap::new();
+        let mut acc = Map::new();
         for (k, v) in value {
             acc.insert(k, v.into());
         }
-        Map(acc)
+        acc
     }
 }
 
@@ -258,6 +261,33 @@ impl From<serde_json::Value> for Type {
             ),
             Object(val) => Type::Map(Map::from(val)),
         }
+    }
+}
+
+impl PartialEq for Map {
+    fn eq(&self, other: &Self) -> bool {
+        if self.len() != other.len() {
+            return false;
+        }
+        let mut set = HashMap::new();
+        for (k, v) in other.iter() {
+            set.insert(k, v);
+        }
+        self.iter()
+            .all(|(k, v1)| set.get(k).is_some_and(|v2| *v2 == v1))
+    }
+}
+
+impl Serialize for Map {
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut map = serializer.serialize_map(Some(self.len()))?;
+        for (k, v) in self.iter() {
+            map.serialize_entry(k, v)?;
+        }
+        map.end()
     }
 }
 
