@@ -1,7 +1,7 @@
 use clap::Parser;
 use red::{Error, Program, parser};
 use std::{
-    io::{BufRead, BufReader},
+    io::{BufRead, BufReader, BufWriter},
     path::PathBuf,
 };
 
@@ -190,7 +190,7 @@ fn main() {
     };
     program.print_matched = args.print_matched;
 
-    let out = &mut std::io::stdout().lock();
+    let out = &mut BufWriter::new(std::io::stdout().lock());
     if let Err(msg) = if args.files.is_empty() {
         let inp = BufReader::new(std::io::stdin());
         program.process_reader(inp.lines(), out)
