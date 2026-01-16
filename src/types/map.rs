@@ -3,7 +3,7 @@ use serde::{Serialize, Serializer, ser::SerializeMap};
 use std::collections::HashMap;
 
 #[derive(Clone, Default)]
-pub(crate) struct Map(HashMap<String, Type>);
+pub(crate) struct Map(fxhash::FxHashMap<String, Type>);
 
 impl Map {
     pub(crate) fn new() -> Self {
