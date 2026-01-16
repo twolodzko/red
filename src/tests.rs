@@ -41,7 +41,7 @@ impl std::io::Write for WriteMock {
     )]
 #[test_case(
         "flatten({foo: 1, bar: {baz: 2, fiz: {qux: 3, nil: {} }}})",
-        "{\"bar.baz\": 2, \"bar.fiz.nil\": {}, \"bar.fiz.qux\": 3, \"foo\": 1}";
+        "{\"foo\": 1, \"bar.baz\": 2, \"bar.fiz.qux\": 3, \"bar.fiz.nil\": {}}";
         "flatten non-empty map"
     )]
 #[test_case(
@@ -430,7 +430,7 @@ fn instruction_negative(input: &str) {
     )]
 #[test_case(
         "map = {}, map['foo'] = 42, arr = [1], arr[0] = 2, print(logfmt)",
-        "arr=\"[2]\" map=\"{\\\"foo\\\":42}\"";
+        "map=\"{\\\"foo\\\":42}\" arr=\"[2]\"";
         "map assign"
     )]
 #[test_case(
@@ -440,12 +440,12 @@ fn instruction_negative(input: &str) {
     )]
 #[test_case(
         "&m = {a:1}, before = &m['a'], &m['a'] = 2, after = &m['a'], print(logfmt)",
-        "after=2 before=1";
+        "before=1 after=2";
         "get set maps"
     )]
 #[test_case(
         "&m = {a:{b:1}}, before = &m['a']['b'], &m['a']['b'] = 2, after = &m['a']['b'], print(logfmt)",
-        "after=2 before=1";
+        "before=1 after=2";
         "get set nested maps"
     )]
 #[test_case(
