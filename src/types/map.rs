@@ -1,7 +1,7 @@
-use std::collections::HashMap;
-
 use crate::{Error, Result, Type, join, types::Collection};
+use core::slice::Iter;
 use serde::{Serialize, Serializer, ser::SerializeMap};
+use std::collections::HashMap;
 
 #[derive(Clone, Default)]
 pub(crate) struct Map(Vec<(String, Type)>);
@@ -72,7 +72,7 @@ impl Map {
         self.0.iter().any(|(k, _)| k == key)
     }
 
-    pub(crate) fn iter<'a>(&'a self) -> core::slice::Iter<'a, (String, Type)> {
+    pub(crate) fn iter<'a>(&'a self) -> Iter<'a, (String, Type)> {
         self.0.iter()
     }
 
