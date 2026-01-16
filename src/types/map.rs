@@ -299,7 +299,7 @@ pub(crate) mod tests {
             }
         }"#;
         // strangely the order changes here
-        let expected = r#"{"foo":1,"bar.baz":2,"bar.fiz":[1,2,3],"bar.qux":{}}"#;
+        let expected = r#"{"bar.baz":2,"bar.fiz":[1,2,3],"bar.qux":{},"foo":1}"#;
         let map = Map::from_json(input).unwrap();
         let result = map.flatten().to_json().unwrap();
         assert_eq!(result, expected)

@@ -87,15 +87,10 @@ pub const PROCEDURES: &[(&str, Procedure, &str, &str)] = &[
     (
         "rev",
         rev,
-        "string|collection",
+        "string|array",
         "reverse a string, array, or a map",
     ),
-    (
-        "sort",
-        sort,
-        "string|collection",
-        "sort a string, array, or a map",
-    ),
+    ("sort", sort, "array", "sort an array"),
     (
         "join",
         join,
@@ -389,9 +384,10 @@ fn rev(args: &[Type]) -> Result<Type> {
     }
     let val = match &args[0] {
         Type::Array(arr) => Type::Array(arr.reverse()),
-        Type::String(str) => Type::String(str.chars().rev().collect::<String>()),
-        Type::Regex(rx) => Type::String(rx.to_string().chars().rev().collect::<String>()),
-        _ => return Err(Error::WrongType),
+        other => {
+            let s = other.as_string()?;
+            Type::String(s.chars().rev().collect::<String>())
+        }
     };
     Ok(val)
 }
@@ -400,11 +396,10 @@ fn sort(args: &[Type]) -> Result<Type> {
     if args.len() != 1 {
         return Err(Error::WrongArgumentsNumber);
     }
-    let val = match &args[0] {
-        Type::Array(arr) => Type::Array(arr.sorted()),
-        _ => return Err(Error::WrongType),
+    let Type::Array(arr) = &args[0] else {
+        return Err(Error::WrongType);
     };
-    Ok(val)
+    Ok(Type::Array(arr.sorted()))
 }
 
 fn unique(args: &[Type]) -> Result<Type> {
