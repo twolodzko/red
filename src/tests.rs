@@ -1,7 +1,8 @@
+use std::io::{BufRead, BufReader};
+
 use crate::{
     eval::{self, Context},
     parser::{Parser, StringReader, Tokenizer},
-    reader::Reader,
     types::Map,
 };
 use test_case::test_case;
@@ -361,8 +362,8 @@ fn end(input: &str, expected: &str) {
     let program = parser.parse().unwrap();
 
     let mut out: Vec<u8> = Vec::new();
-    let reader = Reader::from(input.as_bytes());
-    program.process_reader(reader, &mut out).unwrap();
+    let reader = BufReader::new(input.as_bytes());
+    program.process_reader(reader.lines(), &mut out).unwrap();
 
     assert_eq!(String::from_utf8_lossy(&out), expected)
 }
@@ -530,8 +531,8 @@ fn count_total() {
     let program = parser.parse().unwrap();
 
     let mut out: Vec<u8> = Vec::new();
-    let reader = Reader::from(input.as_bytes());
-    program.process_reader(reader, &mut out).unwrap();
+    let reader = BufReader::new(input.as_bytes());
+    program.process_reader(reader.lines(), &mut out).unwrap();
 
     assert_eq!(String::from_utf8_lossy(&out), "total=136\n");
 }
@@ -578,8 +579,8 @@ fn fizz_buzz(code: &str) {
     let program = parser.parse().unwrap();
 
     let mut out: Vec<u8> = Vec::new();
-    let reader = Reader::from(input.as_bytes());
-    program.process_reader(reader, &mut out).unwrap();
+    let reader = BufReader::new(input.as_bytes());
+    program.process_reader(reader.lines(), &mut out).unwrap();
 
     assert_eq!(String::from_utf8_lossy(&out), expected);
 }
@@ -631,8 +632,8 @@ fn line_filtering(code: &str) {
     let program = parser.parse().unwrap();
 
     let mut out: Vec<u8> = Vec::new();
-    let reader = Reader::from(input.as_bytes());
-    program.process_reader(reader, &mut out).unwrap();
+    let reader = BufReader::new(input.as_bytes());
+    program.process_reader(reader.lines(), &mut out).unwrap();
 
     assert_eq!(String::from_utf8_lossy(&out), expected);
 }
