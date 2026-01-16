@@ -1,10 +1,9 @@
 use crate::{Error, Result, Type, join, types::Collection};
-use core::slice::Iter;
 use serde::{Serialize, Serializer, ser::SerializeMap};
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 
 #[derive(Clone, Default)]
-pub(crate) struct Map(Vec<(String, Type)>);
+pub(crate) struct Map(BTreeMap<String, Type>);
 
 impl Map {
     pub(crate) fn new() -> Self {
@@ -12,26 +11,15 @@ impl Map {
     }
 
     pub(crate) fn insert(&mut self, key: String, value: Type) {
-        for (k, v) in self.0.iter_mut() {
-            if *k == key {
-                *v = value;
-                return;
-            }
-        }
-        self.0.push((key, value));
+        self.0.insert(key, value);
     }
 
     pub(crate) fn get(&self, key: &str) -> Option<&Type> {
-        self.0
-            .iter()
-            .find_map(|(k, v)| if k == key { Some(v) } else { None })
+        self.0.get(key)
     }
 
     pub(crate) fn get_mut(&mut self, key: &str) -> Option<&mut Type> {
-        if let Some(index) = self.0.iter().position(|(k, _)| k == key) {
-            return self.0.get_mut(index).map(|(_, v)| v);
-        }
-        None
+        self.0.get_mut(key)
     }
 
     pub(crate) fn to_logfmt(&self) -> Result<String> {
@@ -72,16 +60,16 @@ impl Map {
         self.0.iter().any(|(k, _)| k == key)
     }
 
-    pub(crate) fn iter<'a>(&'a self) -> Iter<'a, (String, Type)> {
+    pub(crate) fn iter<'a>(&'a self) -> std::collections::btree_map::Iter<'a, String, Type> {
         self.0.iter()
     }
 
     pub(crate) fn keys(&self) -> impl Iterator<Item = &String> {
-        self.0.iter().map(|(k, _)| k)
+        self.0.keys()
     }
 
     pub(crate) fn values(&self) -> impl Iterator<Item = &Type> {
-        self.0.iter().map(|(_, v)| v)
+        self.0.values()
     }
 }
 
@@ -284,16 +272,6 @@ impl Collection<Map> for Map {
             .iter()
             .for_each(|(k, v)| acc.insert(k.to_string(), v.clone()));
         acc
-    }
-
-    fn reverse(&self) -> Self {
-        Map(self.0.iter().cloned().rev().collect())
-    }
-
-    fn sorted(&self) -> Self {
-        let mut acc = self.0.clone();
-        acc.sort_by(|(k1, _), (k2, _)| k1.cmp(k2));
-        Map(acc)
     }
 }
 

@@ -25,6 +25,16 @@ impl Array {
     pub(crate) fn slice(&self, start: usize, stop: usize) -> Option<Array> {
         Some(self.0.get(start..=stop)?.to_vec().into())
     }
+
+    pub(crate) fn reverse(&self) -> Array {
+        Array::from(self.0.iter().cloned().rev().collect::<Vec<Type>>())
+    }
+
+    pub(crate) fn sorted(&self) -> Array {
+        let mut arr = self.0.clone();
+        arr.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+        Array(arr)
+    }
 }
 
 impl std::fmt::Display for Array {
@@ -140,16 +150,6 @@ impl Collection<Array> for Array {
         self.iter().for_each(|v| acc.push(v.clone()));
         other.iter().for_each(|v| acc.push(v.clone()));
         acc
-    }
-
-    fn reverse(&self) -> Array {
-        Array::from(self.0.iter().cloned().rev().collect::<Vec<Type>>())
-    }
-
-    fn sorted(&self) -> Array {
-        let mut arr = self.0.clone();
-        arr.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-        Array(arr)
     }
 
     fn flatten(&self) -> Array {

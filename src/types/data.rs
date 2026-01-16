@@ -287,8 +287,6 @@ fn unify_to_compare<'a>(lhs: &'a Type, rhs: &'a Type) -> (Cow<'a, Type>, Cow<'a,
 pub(crate) trait Collection<T> {
     fn is_empty(&self) -> bool;
     fn len(&self) -> usize;
-    fn sorted(&self) -> T;
-    fn reverse(&self) -> T;
     fn flatten(&self) -> T;
     fn join(&self, other: &T) -> T;
     fn get_rec(&self, keys: &[Type]) -> Result<Option<Type>>;

@@ -389,7 +389,6 @@ fn rev(args: &[Type]) -> Result<Type> {
     }
     let val = match &args[0] {
         Type::Array(arr) => Type::Array(arr.reverse()),
-        Type::Map(map) => Type::Map(map.reverse()),
         Type::String(str) => Type::String(str.chars().rev().collect::<String>()),
         Type::Regex(rx) => Type::String(rx.to_string().chars().rev().collect::<String>()),
         _ => return Err(Error::WrongType),
@@ -403,7 +402,6 @@ fn sort(args: &[Type]) -> Result<Type> {
     }
     let val = match &args[0] {
         Type::Array(arr) => Type::Array(arr.sorted()),
-        Type::Map(map) => Type::Map(map.sorted()),
         _ => return Err(Error::WrongType),
     };
     Ok(val)
