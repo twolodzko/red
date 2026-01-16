@@ -15,3 +15,15 @@ unescape = "0.1.0"
 
 [dev-dependencies]
 test-case = "3.3.1"
+
+[profile.release]
+# see:
+# https://gist.github.com/jFransham/369a86eff00e5f280ed25121454acec1
+# https://rustc-dev-guide.rust-lang.org/building/optimized-build.html
+# https://doc.rust-lang.org/rustc/codegen-options/index.html
+# https://nnethercote.github.io/perf-book/build-configuration.html
+strip = "symbols"
+lto = "fat"
+opt-level = 3
+panic = "abort"
+codegen-units = 1
