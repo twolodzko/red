@@ -27,13 +27,6 @@ impl Array {
     }
 }
 
-fn flatten_array(val: &Type) -> Vec<Type> {
-    match val {
-        Type::Array(arr) => arr.iter().flat_map(flatten_array).collect(),
-        other => vec![other.clone()],
-    }
-}
-
 impl std::fmt::Display for Array {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.to_json().unwrap())
@@ -172,5 +165,12 @@ impl Collection<Array> for Array {
 
     fn is_empty(&self) -> bool {
         self.0.is_empty()
+    }
+}
+
+fn flatten_array(val: &Type) -> Vec<Type> {
+    match val {
+        Type::Array(arr) => arr.iter().flat_map(flatten_array).collect(),
+        other => vec![other.clone()],
     }
 }
