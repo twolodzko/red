@@ -2,7 +2,7 @@ use crate::{Error, Result, Type, join, types::data::Collection};
 use core::slice::Iter;
 use serde::Serialize;
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Hash, Default)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Hash, Default, Serialize)]
 pub(crate) struct Array(Vec<Type>);
 
 impl Array {
@@ -50,15 +50,6 @@ impl std::fmt::Debug for Array {
             "[{}]",
             join(self.iter().map(|v| format!("{:?}", v)), ", ")
         )
-    }
-}
-
-impl Serialize for Array {
-    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        self.0.serialize(serializer)
     }
 }
 

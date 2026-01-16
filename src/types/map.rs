@@ -1,9 +1,9 @@
 use crate::{Error, Result, Type, join, types::Collection};
 use indexmap::IndexMap;
-use serde::{Serialize, Serializer, ser::SerializeMap};
+use serde::Serialize;
 use std::collections::HashMap;
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Serialize)]
 pub(crate) struct Map(IndexMap<String, Type>);
 
 impl Map {
@@ -143,19 +143,6 @@ impl PartialEq for Map {
         }
         self.iter()
             .all(|(k, v1)| set.get(k).is_some_and(|v2| *v2 == v1))
-    }
-}
-
-impl Serialize for Map {
-    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut map = serializer.serialize_map(Some(self.len()))?;
-        for (k, v) in self.iter() {
-            map.serialize_entry(k, v)?;
-        }
-        map.end()
     }
 }
 
